@@ -1,21 +1,22 @@
-# Polyglot Microservices Platform
+# YouTrack Polyglot Microservices Platform
 *(Docker + API Gateway + Pure PHP UI)*
 
-This repository contains a fully containerized **microservices platform** built entirely with Docker.
-The project demonstrates how multiple languages and technologies (**Java, Node.js, PHP**) can coexist
-within a single, coherent system using modern backend architecture principles.
+This repository contains a **team-based, polyglot microservices template** designed for collaborative development.
+Each developer works on an isolated service using a different technology stack, while sharing a common gateway and UI.
+
+The project is intentionally kept **simple and dependency-free by default** so that every developer can start coding immediately.
+Infrastructure components (PostgreSQL, Redis, RabbitMQ) are included **as optional building blocks** and can be enabled when needed.
 
 ---
 
-## Goals of the Project
+## Project Goals
 
-- Build a real microservice-based architecture from scratch
-- Use multiple programming languages in the same system
-- Practice API Gateway, service-to-service communication and internal auth
-- Integrate PostgreSQL, Redis and RabbitMQ
-- Apply event-driven architecture
-- Implement minimum observability (Request ID propagation)
-- Run everything **without installing runtimes on the host machine**
+- Provide a **ready-to-use microservices template** for team development
+- Enable parallel development with **clear service ownership**
+- Demonstrate polyglot backend development (**Java, Node.js, PHP**)
+- Practice API Gateway and service isolation
+- Allow optional infrastructure integration (DB / Cache / Messaging)
+- Run everything via Docker without installing runtimes locally
 
 ---
 
@@ -25,134 +26,92 @@ within a single, coherent system using modern backend architecture principles.
 - **gateway (Nginx)**
   - Single entrypoint for the entire system
   - Path-based routing to backend services
+  - No changes required when adding new endpoints to existing services
 
 ### UI
 - **frontend (Pure PHP)**
-  - Simple test panel
+  - Simple handover panel
+  - One page per developer
   - Communicates with backend services only via the gateway
 
-### Backend Services
+### Backend Services (People-Oriented)
 
-#### Users Service (Java)
+Each service is owned by a single developer and can evolve independently.
+
+#### Caner Service (Java)
 - Technology: Java, Spring Boot
-- Database: PostgreSQL
-- Responsibilities:
-  - User creation
-  - User listing
+- Folder: `services/caner-java`
+- Purpose:
+  - Caner’s personal service
+  - Starts with a simple `/ping` endpoint
+  - Can later integrate DB or messaging if required
 
-Endpoints:
-- `GET  /api/users/ping`
-- `GET  /api/users/users`
-- `POST /api/users/users`
-
-```json
-{ "name": "Alice" }
-```
+Endpoint:
+- `GET /api/caner/ping`
 
 ---
 
-#### Products Service (Java)
+#### Durdu Service (Java)
 - Technology: Java, Spring Boot
-- Database: PostgreSQL
-- Responsibilities:
-  - Product creation and listing
-  - SKU-based product validation
-  - Used by Orders Service for validation
+- Folder: `services/durdu-java`
+- Purpose:
+  - Durdu’s personal service
+  - Independent development space
 
-Endpoints:
-- `GET  /api/products/ping`
-- `GET  /api/products/products`
-- `POST /api/products/products`
-
-```json
-{
-  "sku": "P1",
-  "name": "Keyboard",
-  "price": 199.90
-}
-```
-
-- `GET /api/products/products/sku/{sku}`
+Endpoint:
+- `GET /api/durdu/ping`
 
 ---
 
-#### Orders Service (Node.js)
+#### Hüsniye Service (Node.js)
 - Technology: Node.js, Express
-- Database: PostgreSQL
-- Messaging: RabbitMQ (publisher)
-- Responsibilities:
-  - Order creation
-  - Product validation via Products Service
-  - Event publishing (`order.created`)
+- Folder: `services/husniye-node`
+- Purpose:
+  - Hüsniye’s personal service
+  - Lightweight Node.js playground
 
-Endpoints:
-- `GET  /api/orders/ping`
-- `POST /api/orders/orders`
-
-```json
-{
-  "customer": "Product",
-  "items": [{ "sku": "P1", "qty": 1 }]
-}
-```
+Endpoint:
+- `GET /api/husniye/ping`
 
 ---
 
-#### Tags Service (Node.js)
+#### Mehmet Service (Node.js)
 - Technology: Node.js, Express
-- Cache: Redis
-- Messaging: RabbitMQ (consumer)
-- Responsibilities:
-  - Consume `order.created` events
-  - Maintain order counter
-  - Provide statistics endpoint
+- Folder: `services/mehmet-node`
+- Purpose:
+  - Mehmet’s personal service
+  - Can later consume events or use Redis if needed
 
-Endpoints:
-- `GET /api/tags/ping`
-- `GET /api/tags/stats`
+Endpoint:
+- `GET /api/mehmet/ping`
 
 ---
 
-## Infrastructure Services
+## Infrastructure Services (Optional)
+
+Infrastructure services are **present but commented out** in `docker-compose.yml`.
+
+They can be enabled by uncommenting when required by a service.
 
 - **PostgreSQL** – persistent storage
-- **Redis** – counters / cache
-- **RabbitMQ** – event bus
+- **Redis** – cache / counters
+- **RabbitMQ** – messaging / events
 
 ---
 
-## Create Order Flow
+## Routing Convention
 
-1. UI → Gateway → Orders Service
-2. Orders Service → Products Service (HTTP + internal auth)
-3. Orders Service → PostgreSQL
-4. Orders Service → RabbitMQ (`order.created`)
-5. Tags Service consumes event
-6. Redis counter incremented
-7. UI reads stats from Tags Service
+All external traffic goes through the gateway:
 
----
+```
+/api/caner/*    → caner service
+/api/durdu/*   → durdu service
+/api/husniye/* → husniye service
+/api/mehmet/*  → mehmet service
+```
 
-## Internal Authentication
-
-- All backend services require:
-  ```
-  Authorization: Bearer dev-internal-token
-  ```
-- UI currently sends the token intentionally for testing purposes
-- Can later be moved entirely to gateway header injection
-
----
-
-## Minimum Observability (Request ID)
-
-- Gateway generates `X-Request-Id`
-- Propagated across all services
-- Forwarded during service-to-service calls
-- Included in RabbitMQ event payloads
-- Exposed in Tags Service stats response
-
-This enables end-to-end request correlation **without logging infrastructure**.
+As long as a developer stays within their own prefix,
+**no gateway changes are required**.
 
 ---
 
@@ -164,24 +123,29 @@ This enables end-to-end request correlation **without logging infrastructure**.
 ├── gateway/
 │   └── nginx.conf
 ├── frontend-php/
-│   └── public/index.php
+│   └── public/
+│       ├── index.php
+│       ├── caner.php
+│       ├── durdu.php
+│       ├── husniye.php
+│       └── mehmet.php
 └── services/
-    ├── users-java/
-    ├── products-java/
-    ├── orders-node/
-    └── tags-node/
+    ├── caner-java/
+    ├── durdu-java/
+    ├── husniye-node/
+    └── mehmet-node/
 ```
 
 ---
 
-## Running with Docker
+## Running the Project
 
 ### Requirements
 - Docker Desktop
 - Docker Compose
 - Git
 
-Check:
+Verify installation:
 ```bash
 docker --version
 docker compose version
@@ -189,7 +153,8 @@ docker compose version
 
 ---
 
-### Start All Services
+### Start the System
+
 ```bash
 docker compose up --build
 ```
@@ -199,14 +164,16 @@ UI:
 
 ---
 
-### Stop Services
+### Stop the System
+
 ```bash
 docker compose down
 ```
 
 ---
 
-### Reset Everything (including database)
+### Reset Everything (including volumes)
+
 ```bash
 docker compose down -v
 docker compose up --build
@@ -215,19 +182,25 @@ docker compose up --build
 ---
 
 ### Rebuild a Single Service
+
 ```bash
-docker compose up -d --build orders-service
+docker compose up -d --build caner
+docker compose up -d --build durdu
+docker compose up -d --build husniye
+docker compose up -d --build mehmet
 ```
 
 ---
 
 ### View Logs
+
 ```bash
-docker compose logs -f orders-service
-docker compose logs -f products-service
-docker compose logs -f users-service
-docker compose logs -f tags-service
 docker compose logs -f gateway
+docker compose logs -f frontend
+docker compose logs -f caner
+docker compose logs -f durdu
+docker compose logs -f husniye
+docker compose logs -f mehmet
 ```
 
 ---
@@ -235,22 +208,30 @@ docker compose logs -f gateway
 ## Smoke Test
 
 1. Open http://localhost/
-2. Create a product
-3. Create an order
-4. Check tags stats
+2. Click your name
+3. Press **Ping Service**
+4. Confirm JSON response
 
-If all steps work, the system is running correctly.
+If all services respond, the system is running correctly.
+
+---
+
+## How Developers Should Start
+
+1. Go to your service folder under `services/`
+2. Implement your endpoints freely
+3. Enable database or messaging only if your service needs it
+4. Avoid modifying gateway unless a **new service** is added
 
 ---
 
 ## Final Notes
 
-This project is intentionally designed as a **foundation**.
-It can be extended with:
-- Gateway-level auth
-- Rate limiting
-- Circuit breakers
-- Distributed tracing
-- Real frontend
+This repository is intentionally a **starting point**, not a finished product.
 
-Current state already demonstrates strong backend architecture fundamentals.
+It provides:
+- Clear ownership boundaries
+- Safe parallel development
+- A realistic microservices foundation
+
+From here, the system can grow naturally based on real requirements.
