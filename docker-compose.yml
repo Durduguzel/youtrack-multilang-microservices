@@ -1,0 +1,60 @@
+services:
+  # --- Java services ---
+  durdu:
+    build:
+      context: ./services/durdu-java
+    working_dir: /app
+    command: sh -lc "./mvnw spring-boot:run"
+    volumes:
+      - ./services/durdu-java:/app
+
+  caner:
+    build:
+      context: ./services/caner-java
+    working_dir: /app
+    command: sh -lc "./mvnw spring-boot:run"
+    volumes:
+      - ./services/caner-java:/app
+
+  # --- Node services ---
+  husniye:
+    build:
+      context: ./services/husniye-node
+    working_dir: /app
+    command: sh -lc "npm install && npm run dev"
+    volumes:
+      - ./services/husniye-node:/app
+    environment:
+      PORT: "3000"
+
+  mehmet:
+    build:
+      context: ./services/mehmet-node
+    working_dir: /app
+    command: sh -lc "npm install && npm run dev"
+    volumes:
+      - ./services/mehmet-node:/app
+    environment:
+      PORT: "3000"
+
+  # --- Frontend (Pure PHP) ---
+  frontend:
+    image: php:8.3-cli
+    working_dir: /var/www
+    command: sh -lc "php -S 0.0.0.0:8000 -t public"
+    volumes:
+      - ./frontend-php:/var/www
+
+  # --- Gateway ---
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - caner
+      - durdu
+      - husniye
+      - mehmet
