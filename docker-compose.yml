@@ -7,6 +7,16 @@ services:
     command: sh -lc "./mvnw spring-boot:run"
     volumes:
       - ./services/durdu-java:/app
+    environment:
+      SERVICE_NAME: "durdu"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "app"
+      DB_USER: "app"
+      DB_PASS: "app"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   caner:
     build:
@@ -15,6 +25,16 @@ services:
     command: sh -lc "./mvnw spring-boot:run"
     volumes:
       - ./services/caner-java:/app
+    environment:
+      SERVICE_NAME: "caner"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "app"
+      DB_USER: "app"
+      DB_PASS: "app"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # --- Node services ---
   husniye:
@@ -26,6 +46,15 @@ services:
       - ./services/husniye-node:/app
     environment:
       PORT: "3000"
+      SERVICE_NAME: "husniye"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "app"
+      DB_USER: "app"
+      DB_PASS: "app"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   mehmet:
     build:
@@ -36,6 +65,15 @@ services:
       - ./services/mehmet-node:/app
     environment:
       PORT: "3000"
+      SERVICE_NAME: "mehmet"
+      DB_HOST: "postgres"
+      DB_PORT: "5432"
+      DB_NAME: "app"
+      DB_USER: "app"
+      DB_PASS: "app"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # --- Frontend (Pure PHP) ---
   frontend:
@@ -58,3 +96,22 @@ services:
       - durdu
       - husniye
       - mehmet
+
+  # --- Database ---
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:
