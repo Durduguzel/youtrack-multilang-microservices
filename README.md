@@ -216,6 +216,20 @@ If all services respond, the system is running correctly.
 
 ---
 
+### PostgreSQL Credentials
+
+To connect via pgAdmin or etc.
+
+```bash
+Host:     localhost
+Port:     15432
+Database: app
+User:     app
+Password: app
+```
+
+---
+
 ## How Developers Should Start
 
 1. Go to your service folder under `services/`
