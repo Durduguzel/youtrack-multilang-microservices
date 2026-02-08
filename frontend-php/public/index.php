@@ -4,7 +4,7 @@ declare(strict_types=1);
 $people = [
   ['key' => 'caner',   'label' => 'Caner',   'file' => 'caner.php'],
   ['key' => 'durdu',   'label' => 'Durdu',   'file' => 'durdu.php'],
-  ['key' => 'husniye', 'label' => 'Hüsniye', 'file' => 'husniye.php'],
+  ['key' => 'husniye', 'label' => 'Hüsniye', 'file' => 'husniye/login.php'],
   ['key' => 'mehmet',  'label' => 'Mehmet',  'file' => 'mehmet.php'],
 ];
 
