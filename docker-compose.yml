@@ -41,7 +41,7 @@ services:
     build:
       context: ./services/husniye-node
     working_dir: /app
-    command: sh -lc "npm install && npm run dev"
+    command: npm run dev
     volumes:
       - ./services/husniye-node:/app
     environment:
@@ -52,6 +52,7 @@ services:
       DB_NAME: "app"
       DB_USER: "app"
       DB_PASS: "app"
+      JWT_SECRET: "supersecretkey"
     depends_on:
       postgres:
         condition: service_healthy
