@@ -39,8 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $result = $response ? json_decode($response, true) : null;
 
-    if (!($result['ok'] ?? false)) {
-      $error = "Login başarısız" . json_encode($result);
+    if (($result['ok'] ?? false)) {
+      header("Location: dashboard.php");
+      exit;
+    } else {
+      $error = "Login başarısız";
     }
 
   }
