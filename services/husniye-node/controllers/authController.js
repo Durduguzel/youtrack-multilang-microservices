@@ -19,7 +19,16 @@ export async function login(req, res) {
 
 export async function register(req, res) {
   console.log("REGISTER HIT");
+
   const { email, name, password_hash } = req.body;
+
   const user = await createUser(email, name, password_hash);
-  res.json({ user });
+
+  if(!user) {
+    console.log("User creation failed for email:", email);
+    return res.status(400).json({ ok:false, message:"User oluşturulamadı" });
+  }
+  
+  console.log("User created:", user);
+  res.json({ ok:true, user });
 }

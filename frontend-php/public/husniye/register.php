@@ -13,13 +13,13 @@ $success = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
-    $name = $_POST['name'] ??'';
+    $name = $_POST['name'] ?? '';
     $password = $_POST['password'] ?? '';
-    $password2 = $_POST['password2'] ?? '';
+    $password_confirm = $_POST['password_confirm'] ?? '';
 
-    if ($email === '' || $name === '' || $password === '' || $password2 === '') {
+    if ($email == '' || $name == '' || $password == '' || $password_confirm == '') {
         $error = "Tüm alanlar zorunlu.";
-    } elseif ($password !== $password2) {
+    } elseif ($password !== $password_confirm) {
         $error = "Şifreler eşleşmiyor.";
     } else {
         $ch = curl_init("http://gateway/api/husniye/auth/register");
@@ -45,9 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = json_decode($response, true);
 
         if (($result['ok'] ?? false)) {
-            $success = "Kayıt başarılı!";
+            header("Location: login.php");
+            exit;
         } else {
-            $error = $result['message'] ?? "Kayıt başarısız323";
+            $error = $result['message'] ?? "Kayıt başarısız";
         }
     }
 }
